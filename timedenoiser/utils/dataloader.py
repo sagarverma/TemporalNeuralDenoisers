@@ -68,8 +68,8 @@ def denormalize(data, minn, maxx):
 def load_data(args):
     dataset = {}
 
-    train_pkls = glob.glob(os.path.join(args.data_dir, 'train/*.pkl'))
-    val_pkls = glob.glob(os.path.join(args.data_dir, 'val/*.pkl'))
+    train_mats = glob.glob(os.path.join(args.data_dir, 'train/*.mat'))
+    val_mats = glob.glob(os.path.join(args.data_dir, 'val/*.mat'))
 
     fin = open(os.path.join(args.data_dir, 'metadata.json'), 'r')
     metadata = json.load(fin)
@@ -78,27 +78,26 @@ def load_data(args):
     train_samples = []
     val_samples = []
 
-    for train_pkl in train_pkls:
-        fin = open(train_pkl, 'rb')
-        data = pickle.load(fin)
-        dataset[train_pkl] = data
+    for train_mat in train_mats:
+        data = loadmat(train_mat)
+        dataset[train_mat] = data
 
         for i in range(0, data['noisy_current_d'].shape[0], args.stride):
             if i + args.window < data['noisy_current_d'].shape[0]:
-                train_samples.append([train_pkl, i,
+                train_samples.append([train_mat, i,
                                       i + args.window, i + args.window//2])
 
-    for val_pkl in val_pkls:
-        fin = open(val_pkl, 'rb')
-        data = pickle.load(fin)
-        dataset[val_pkl] = data
+    for val_mat in val_mats:
+        data = loadmat(val_mat)
+        dataset[val_mat] = data
 
         for i in range(0, data['noisy_current_d'].shape[0], args.stride):
             if i + args.window < data['noisy_current_d'].shape[0]:
-                val_samples.append([val_pkl, i,
+                val_samples.append([val_mat, i,
                                       i + args.window, i + args.window//2])
 
     return dataset, train_samples, val_samples, metadata
+
 
 def loader(full_load, sample, metadata, args, type='flat'):
     inp_quants = args.inp_quants.split(',')
@@ -122,6 +121,7 @@ def loader(full_load, sample, metadata, args, type='flat'):
         out_data.append(normalize(window, minn, maxx))
 
     return np.asarray(inp_data), np.asarray(out_data)
+
 
 class FlatInFlatOut(data.Dataset):
     def __init__(self, full_load, samples, metadata, args):
