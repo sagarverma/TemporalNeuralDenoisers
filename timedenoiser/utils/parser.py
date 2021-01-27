@@ -83,7 +83,7 @@ def get_parser_with_args():
 
     parser.add_argument('--inp_quants',
                         type=str,
-                        default='voltage_d,voltage_q,current_d,current_q',
+                        default='noisy_voltage_d,noisy_voltage_q,noisy_current_d,noisy_current_q',
                         required=False,
                         help='Input quantites to the model.')
 
