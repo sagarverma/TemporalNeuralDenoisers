@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.autograd import Variable
 
-from motor_dynamics.models.indrnn import IndRNN
+from timedenoiser.models.indrnn import IndRNN
 
 
 class ShallowEncDec(nn.Module):
