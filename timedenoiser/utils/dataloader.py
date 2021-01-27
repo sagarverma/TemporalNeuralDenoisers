@@ -106,7 +106,7 @@ def loader(full_load, sample, metadata, args, type='flat'):
 
     inp_data = []
     for inp_quant in inp_quants:
-        window = full_load[sample[0]][inp_quant][sample[1]: sample[2]]
+        window = full_load[sample[0]][inp_quant][0][sample[1]: sample[2]]
         minn = metadata['min'][inp_quant]
         maxx = metadata['max'][inp_quant]
         inp_data.append(normalize(window, minn, maxx))
@@ -114,9 +114,9 @@ def loader(full_load, sample, metadata, args, type='flat'):
     out_data = []
     for out_quant in out_quants:
         if type == 'seq':
-            window = full_load[sample[0]][out_quant][sample[1]: sample[2]]
+            window = full_load[sample[0]][out_quant][0][sample[1]: sample[2]]
         if type == 'flat':
-            window = full_load[sample[0]][out_quant][sample[3]]
+            window = full_load[sample[0]][out_quant][0][sample[3]]
         minn = metadata['min'][out_quant]
         maxx = metadata['max'][out_quant]
         out_data.append(normalize(window, minn, maxx))
