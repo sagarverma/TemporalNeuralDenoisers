@@ -31,7 +31,7 @@ def get_loader_transform_types(model):
         return 'seq', 'flat'
 
 
-def predict(speed_model, torque_model, data, window):
+def predict(model, data, window):
     metadata = {"min": {"voltage_d": -300,
                         "voltage_q": -300,
                         "current_d": -30,
@@ -54,8 +54,8 @@ def predict(speed_model, torque_model, data, window):
                         "torque": 120,
                         "speed": 80,
                         "statorPuls": 80}}
-                        
-    inp_trf_typ, out_trf_typ = get_loader_transform_types(speed_model)
+
+    inp_trf_typ, out_trf_typ = get_loader_transform_types(model)
 
     inp_quants = ['noisy_voltage_d', 'noisy_voltage_q', 'noisy_current_d', 'noisy_current_q']
 
@@ -89,10 +89,9 @@ def predict(speed_model, torque_model, data, window):
     torque_preds = []
     for i in range(0, len(samples), 1000):
         batch_inp = torch.tensor(np.asarray(samples[i:i+1000])).float().cuda(0)
-        speed_out = speed_model(batch_inp)
-        torque_out = torque_model(batch_inp)
-        speed_preds.append(speed_out.data.cpu().numpy())
-        torque_preds.append(torque_out.data.cpu().numpy())
+        out = model(batch_inp)
+        speed_preds.append(out.data.cpu().numpy()[:, 0])
+        torque_preds.append(out.data.cpu().numpy()[:, 1])
 
     speed_preds = np.concatenate(speed_preds, axis=0)
     torque_preds = np.concatenate(torque_preds, axis=0)
