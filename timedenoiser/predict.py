@@ -10,8 +10,7 @@ from timedenoiser.utils.predict_utils import (load_model, load_data,
 
 def get_arg_parse():
     parser = argparse.ArgumentParser(description='Test on custom benchmark.')
-    parser.add_argument('--speed_model_file', required=True, type=str)
-    parser.add_argument('--torque_model_file', required=True, type=str)
+    parser.add_argument('--model_file', required=True, type=str)
     parser.add_argument('--benchmark_file', type=str,
                         required=True, help='benchmark file')
     parser.add_argument('--window', type=int,
