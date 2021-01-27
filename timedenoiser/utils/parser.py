@@ -23,33 +23,9 @@ def get_parser_with_args():
                         required=True,
                         help="GPU ID on which to run")
 
-    parser.add_argument('--task',
+    parser.add_argument('--data_dir',
                         type=str,
-                        default='train_sim',
-                        required=True,
-                        help='''Train(train), finetune(finetune), and test model(test).''')
-
-    parser.add_argument('--train_sim_dir',
-                        type=str,
-                        default='../datasets/data/train_sim/',
-                        required=False,
-                        help='Simulated dataset directory for training.')
-
-    parser.add_argument('--train_raw_dir',
-                        type=str,
-                        default='../../datasets/data/train_raw/',
-                        required=False,
-                        help='Raw dataset directory for training.')
-
-    parser.add_argument('--val_sim_dir',
-                        type=str,
-                        default='../../datasets/data/val_sim/',
-                        required=False,
-                        help='Smimulated dataset directory for validation.')
-
-    parser.add_argument('--test_raw_dir',
-                        type=str,
-                        default='../../datasets/data/test_raw/',
+                        default='../../datasets/',
                         required=False,
                         help='Raw dataset directory for testing.')
 
@@ -77,11 +53,15 @@ def get_parser_with_args():
                         encdec_rnn_skip,
                         encdec_birnn_skip,
                         encdec_diag_birnn_skip''')
+    parser.add_argument('--finetune_from',
+                        type=str,
+                        required=False,
+                        help='finetune weight file')
 
     parser.add_argument('--loss',
-                        type=str,
-                        required=True,
-                        help='mse,sc_mse')
+                       type=str,
+                       required=True,
+                       help='mse,sc_mse')
 
     parser.add_argument('--epochs',
                         type=int,
@@ -143,4 +123,10 @@ def get_parser_with_args():
                         default=8,
                         required=False,
                         help='Number of cpu cores to use')
+
+    parser.add_argument('--loader',
+                        type=str,
+                        default='pickle',
+                        required=False,
+                        help='Type of data file loader(mat/pickle)')
     return parser
