@@ -15,7 +15,7 @@ from scipy.interpolate import interp1d
 
 quantities_min_max = {'voltage_d': (-500, 500),
                       'voltage_q': (-500, 500),
-                      'speed': (-700, 700),
+                      'speed': (-80, 80),
                       'current_d': (-30, 30),
                       'current_q': (-30, 30),
                       'torque': (-250, 250)}
