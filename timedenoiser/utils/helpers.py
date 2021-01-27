@@ -188,33 +188,36 @@ def get_model(opt):
     if opt.model == 'shallow_fnn':
         inp_len = inp_channels * opt.window
         model = ShallowFNN(inp_len, out_channels, act)
-    if opt.model == 'deep_fnn':
+    elif opt.model == 'deep_fnn':
         inp_len = inp_channels * opt.window
         model = DeepFNN(inp_len, out_channels, act)
-    if opt.model == 'shallow_cnn':
+    elif opt.model == 'shallow_cnn':
         model = ShallowCNN(inp_channels, out_channels, act)
-    if opt.model == 'deep_cnn':
+    elif opt.model == 'deep_cnn':
         model = DeepCNN(inp_channels, out_channels, act)
-    if opt.model == 'shallow_rnn':
+    elif opt.model == 'shallow_rnn':
         model = ShallowRNN(inp_channels, out_channels, opt.hidden_size, act)
-    if opt.model == 'deep_rnn':
+    elif opt.model == 'deep_rnn':
         model = DeepRNN(inp_channels, out_channels, opt.hidden_size, act)
-    if opt.model == 'shallow_lstm':
+    elif opt.model == 'shallow_lstm':
         model = ShallowLSTM(inp_channels, out_channels, opt.hidden_size, act)
-    if opt.model == 'deep_lstm':
+    elif opt.model == 'deep_lstm':
         model = DeepLSTM(inp_channels, out_channels, opt.hidden_size, act)
-    if opt.model == 'shallow_encdec':
+    elif opt.model == 'shallow_encdec':
         model = ShallowEncDec(inp_channels, out_channels, act)
-    if opt.model == 'deep_encdec':
+    elif opt.model == 'deep_encdec':
         model = DeepEncDec(inp_channels, out_channels, act)
-    if opt.model == 'encdec_skip':
+    elif opt.model == 'encdec_skip':
         model = EncDecSkip(inp_channels, out_channels, act)
-    if opt.model == 'encdec_rnn_skip':
+    elif opt.model == 'encdec_rnn_skip':
         model = EncDecRNNSkip(inp_channels, out_channels, act)
-    if opt.model == 'encdec_birnn_skip':
+    elif opt.model == 'encdec_birnn_skip':
         model = EncDecBiRNNSkip(inp_channels, out_channels, act)
-    if opt.model == 'encdec_diag_birnn_skip':
+    elif opt.model == 'encdec_diag_birnn_skip':
         model = EncDecDiagBiRNNSkip(inp_channels, out_channels, act)
+    else:
+        raise("Incorrect model passed in argument.")
+    
 
     print ('Parameters :', sum(p.numel() for p in model.parameters()))
 
