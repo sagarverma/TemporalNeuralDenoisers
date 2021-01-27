@@ -22,7 +22,7 @@ def get_parser_with_args():
                         default=0,
                         required=True,
                         help="GPU ID on which to run")
-                        
+
     parser.add_argument('--task',
                         type=str,
                         default='train_sim',
@@ -37,31 +37,31 @@ def get_parser_with_args():
 
     parser.add_argument('--train_raw_dir',
                         type=str,
-                        default='../datasets/data/train_raw/',
+                        default='../../datasets/data/train_raw/',
                         required=False,
                         help='Raw dataset directory for training.')
 
     parser.add_argument('--val_sim_dir',
                         type=str,
-                        default='../datasets/data/val_sim/',
+                        default='../../datasets/data/val_sim/',
                         required=False,
                         help='Smimulated dataset directory for validation.')
 
     parser.add_argument('--test_raw_dir',
                         type=str,
-                        default='../datasets/data/test_raw/',
+                        default='../../datasets/data/test_raw/',
                         required=False,
                         help='Raw dataset directory for testing.')
 
     parser.add_argument('--weights_dir',
                         type=str,
-                        default='../weights/',
+                        default='../../weights/',
                         required=False,
                         help='Directory to save model weights.')
 
     parser.add_argument('--logs_dir',
                         type=str,
-                        default='../logs/',
+                        default='../../logs/',
                         required=False,
                         help='Directory to save training logs.')
 
@@ -77,11 +77,11 @@ def get_parser_with_args():
                         encdec_rnn_skip,
                         encdec_birnn_skip,
                         encdec_diag_birnn_skip''')
-    
+
     parser.add_argument('--loss',
-                       type=str,
-                       required=True,
-                       help='mse,sc_mse')
+                        type=str,
+                        required=True,
+                        help='mse,sc_mse')
 
     parser.add_argument('--epochs',
                         type=int,
@@ -103,13 +103,13 @@ def get_parser_with_args():
 
     parser.add_argument('--inp_quants',
                         type=str,
-                        default='voltage_d,voltage_q,speed',
+                        default='voltage_d,voltage_q,current_d,current_q',
                         required=False,
                         help='Input quantites to the model.')
 
     parser.add_argument('--out_quants',
                         type=str,
-                        default='current_d,current_q,torque',
+                        default='speed,torque',
                         required=False,
                         help='Output quantities from the model.')
 
