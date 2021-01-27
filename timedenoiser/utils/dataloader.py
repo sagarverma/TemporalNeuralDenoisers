@@ -13,11 +13,11 @@ import scipy.io as sio
 from scipy.signal import resample
 from scipy.interpolate import interp1d
 
-quantities_min_max = {'voltage_d': (-500, 500),
-                      'voltage_q': (-500, 500),
+quantities_min_max = {'noisy_voltage_d': (-500, 500),
+                      'noisy_voltage_q': (-500, 500),
                       'speed': (-80, 80),
-                      'current_d': (-30, 30),
-                      'current_q': (-30, 30),
+                      'noisy_current_d': (-30, 30),
+                      'noisy_current_q': (-30, 30),
                       'torque': (-250, 250)}
 
 
@@ -104,13 +104,13 @@ def load_data(root):
 def _load_exp_data(root):
     data = sio.loadmat(root)
 
-    voltage_d = normalize(data['voltage_d'][0, :], 'voltage_d')
-    voltage_q = normalize(data['voltage_q'][0, :], 'voltage_q')
-    current_d = normalize(data['current_d'][0, :], 'current_d')
-    current_q = normalize(data['current_q'][0, :], 'current_q')
-    speed = normalize(data['speed'][0, :], 'speed')
-    torque = normalize(data['torque'][0, :], 'torque')
-    time = data['time'][0, :]
+    voltage_d = normalize(data['noisy_voltage_d'], 'noisy_voltage_d')
+    voltage_q = normalize(data['noisy_voltage_q'], 'noisy_voltage_q')
+    current_d = normalize(data['noisy_current_d'], 'noisy_current_d')
+    current_q = normalize(data['noisy_current_q'], 'noisy_current_q')
+    speed = normalize(data['speed'], 'speed')
+    torque = normalize(data['torque'], 'torque')
+    time = data['time']
 
 
     dataset = (voltage_d, voltage_q, speed,
@@ -126,48 +126,6 @@ def _load_exp_data(root):
                        'time': 6}
 
     return dataset.astype(np.float32), index_quant_map
-
-
-def rev_test_output(data):
-    """Denormalize the inference output.
-
-    Args:
-        dataset (np.asarray): Output from inference.
-
-    Returns:
-        np.asarray: Denormalized inference output.
-
-    Raises:        ExceptionName: Why the exception is raised.
-
-    Examples
-        Examples should be written in doctest format, and
-        should illustrate how to use the function/class.
-        >>>
-
-    """
-    time = data[0, :]
-    voltage_d = denormalize(data[1, :], 'voltage_d')
-    voltage_q = denormalize(data[2, :], 'voltage_q')
-    speed = denormalize(data[3, :], 'speed')
-    current_d_true = denormalize(data[4, :], 'current_d')
-    current_d_pred = denormalize(data[5, :], 'current_d')
-    current_q_true = denormalize(data[6, :], 'current_q')
-    current_q_pred = denormalize(data[7, :], 'current_q')
-    torque_true = denormalize(data[8, :], 'torque')
-    torque_pred = denormalize(data[9, :], 'torque')
-
-    dataset = {'time': time,
-               'voltage_d': voltage_d,
-               'voltage_q': voltage_q,
-               'speed': speed,
-               'current_d_true': current_d_true,
-               'current_d_pred': current_d_pred,
-               'current_q_true': current_q_true,
-               'current_q_pred': current_q_pred,
-               'torque_true': torque_true,
-               'torque_pred': torque_pred}
-
-    return dataset
 
 
 def get_sample_metadata(dataset, stride, window):
