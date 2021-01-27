@@ -31,7 +31,30 @@ def get_loader_transform_types(model):
         return 'seq', 'flat'
 
 
-def predict(speed_model, torque_model, data, window, metadata):
+def predict(speed_model, torque_model, data, window):
+    metadata = {"min": {"voltage_d": -300,
+                        "voltage_q": -300,
+                        "current_d": -30,
+                        "current_q": -30,
+                        "noisy_voltage_d": -300,
+                        "noisy_voltage_q": -300,
+                        "noisy_current_d": -30,
+                        "noisy_current_q": -30,
+                        "torque": -120,
+                        "speed": -80,
+                        "statorPuls": -80},
+                "max": {"voltage_d": 300,
+                        "voltage_q": 300,
+                        "current_d": 30,
+                        "current_q": 30,
+                        "noisy_voltage_d": 300,
+                        "noisy_voltage_q": 300,
+                        "noisy_current_d": 30,
+                        "noisy_current_q": 30,
+                        "torque": 120,
+                        "speed": 80,
+                        "statorPuls": 80}}
+                        
     inp_trf_typ, out_trf_typ = get_loader_transform_types(speed_model)
 
     inp_quants = ['noisy_voltage_d', 'noisy_voltage_q', 'noisy_current_d', 'noisy_current_q']
