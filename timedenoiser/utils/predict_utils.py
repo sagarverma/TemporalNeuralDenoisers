@@ -4,57 +4,19 @@ import numpy
 import torch
 import torch.nn as nn
 
-from motornn.utils.dataloader import normalize, denormalize
-from motornn.models.ffnn import ShallowFNN, DeepFNN
-from motornn.models.cnn import ShallowCNN, DeepCNN
-from motornn.models.rnn import ShallowRNN, DeepRNN
-from motornn.models.encdec import (EncDecSkip,
-                                   EncDecRNNSkip,
-                                   EncDecBiRNNSkip,
-                                   EncDecDiagBiRNNSkip)
+from scipy.io import loadmat
+
+from timedenoiser.utils.dataloader import normalize, denormalize
+from timedenoiser.models.ffnn import ShallowFNN, DeepFNN
+from timedenoiser.models.cnn import ShallowCNN, DeepCNN
+from timedenoiser.models.rnn import ShallowRNN, DeepRNN
+from timedenoiser.models.encdec import (EncDecSkip,
+                                        EncDecRNNSkip,
+                                        EncDecBiRNNSkip,
+                                        EncDecDiagBiRNNSkip)
 
 from motormetrics.ml import *
 from motormetrics.ee import *
-
-from motorrefgen.experiment import Experiment
-from motorrefgen.config import ExperimentConfig
-
-from motorsim.simconfig import SimConfig
-from motorsim.simulators.conn_python import Py2Mat
-
-
-def generate(reference_speed, speed_time,
-             reference_torque, torque_time,
-             sim_rate):
-    """Generate trajectory from the passed argument.
-
-    Parameters
-    ----------
-    opt : args
-        Parsed arguments.
-
-    Returns
-    -------
-    None
-
-    """
-    config = ExperimentConfig(integral=False, simulate=True)
-    experiment = Experiment(config)
-
-    reference = {'reference_speed': reference_speed,
-                 'speed_time':  speed_time,
-                 'reference_torque':  reference_torque,
-                 'torque_time':  torque_time}
-    experiment.set_manual_reference(reference)
-
-    simconfig = SimConfig()
-    simconfig.set_config_from_json({'Data_Ts': sim_rate})
-    py2mat = Py2Mat(simconfig)
-
-    experiment.simulate(simulator=py2mat)
-    simulation_data = experiment.get_simulation_data()
-
-    return simulation_data
 
 
 def get_loader_transform_types(model):
@@ -69,59 +31,13 @@ def get_loader_transform_types(model):
         return 'seq', 'flat'
 
 
-class Exper():
-    def __init__(self, kwargs):
-        for k in kwargs:
-            self.__dict__[k] = kwargs[k]
-
-def compute_metrics(data, model_speed, model_torque):
-    sim_exp = Exper(data)
-    data['speed'] = model_speed
-    data['torque'] = model_torque
-    model_exp = Exper(data)
-
-    torque_metrics = compute_torque_metrics(sim_exp)
-    model_torque_metrics = compute_torque_metrics(model_exp)
-
-    speed_metrics = compute_speed_metrics(sim_exp)
-    model_speed_metrics = compute_speed_metrics(model_exp)
-
-    return torque_metrics, model_torque_metrics, speed_metrics, model_speed_metrics
-
-def predict(speed_model, torque_model, data, window, alpha, noise=False):
-    metadata = {"min": {"voltage_d": -300,
-                        "voltage_q": -300,
-                        "current_d": -30,
-                        "current_q": -30,
-                        "noisy_voltage_d": -300,
-                        "noisy_voltage_q": -300,
-                        "noisy_current_d": -30,
-                        "noisy_current_q": -30,
-                        "torque": -120,
-                        "speed": -80,
-                        "statorPuls": -80},
-                "max": {"voltage_d": 300,
-                        "voltage_q": 300,
-                        "current_d": 30,
-                        "current_q": 30,
-                        "noisy_voltage_d": 300,
-                        "noisy_voltage_q": 300,
-                        "noisy_current_d": 30,
-                        "noisy_current_q": 30,
-                        "torque": 120,
-                        "speed": 80,
-                        "statorPuls": 80}}
-
+def predict(speed_model, torque_model, data, window, metadata):
     inp_trf_typ, out_trf_typ = get_loader_transform_types(speed_model)
 
-    if noise:
-        inp_quants = ['noisy_voltage_d', 'noisy_voltage_q', 'noisy_current_d', 'noisy_current_q']
-    else:
-        inp_quants = ['voltage_d', 'voltage_q', 'current_d', 'current_q']
+    inp_quants = ['noisy_voltage_d', 'noisy_voltage_q', 'noisy_current_d', 'noisy_current_q']
 
     inp_data = []
     for inp_quant in inp_quants:
-        print (inp_quant)
         quantity = data[inp_quant]
         minn = metadata['min'][inp_quant]
         maxx = metadata['max'][inp_quant]
@@ -173,9 +89,6 @@ def predict(speed_model, torque_model, data, window, alpha, noise=False):
     torque_preds = np.concatenate((torque_true[:window//2], torque_preds,
                                    torque_true[-1 * window//2:]), axis=0)
 
-    speed_preds = alpha * speed_preds + (1-alpha) * speed_true
-    torque_preds = alpha * torque_preds + (1-alpha) * torque_true
-
     minn = metadata['min']['speed']
     maxx = metadata['max']['speed']
     speed_denormed = denormalize(speed_preds, minn, maxx)
@@ -202,10 +115,7 @@ def predict(speed_model, torque_model, data, window, alpha, noise=False):
 
 
 def load_data(opt):
-    fin = open(opt.benchmark_file, 'rb')
-    data = pickle.load(fin)
-    fin.close()
-
+    data = loadmat(opt.benchmark_file)
     return data
 
 

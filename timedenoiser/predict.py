@@ -4,8 +4,8 @@ import pickle
 from copy import deepcopy
 from scipy.io import savemat
 
-from motornn.utils.predict_utils import (load_model, load_data,
-                                         predict, compute_metrics)
+from timedenoiser.utils.predict_utils import (load_model, load_data,
+                                              predict, compute_metrics)
 
 
 def get_arg_parse():
