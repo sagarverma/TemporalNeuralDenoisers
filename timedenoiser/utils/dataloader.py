@@ -69,8 +69,8 @@ def denormalize(data, minn, maxx):
 def load_data(args):
     dataset = {}
 
-    train_mats = glob.glob(os.path.join(args.data_dir, 'train/*.mat'))
-    val_mats = glob.glob(os.path.join(args.data_dir, 'val/*.mat'))
+    train_mats = glob.glob(os.path.join(args.data_dir, 'train/*.mat'))[:10]
+    val_mats = glob.glob(os.path.join(args.data_dir, 'val/*.mat'))[:10]
 
     fin = open(os.path.join(args.data_dir, 'metadata.json'), 'r')
     metadata = json.load(fin)
