@@ -26,12 +26,12 @@ def get_arg_parse():
 
 
 args = get_arg_parse()
-speed_model, torque_model = load_model(args)
+model = load_model(args)
 data = load_data(args)
 out = deepcopy(data)
 
 speed_denormed, torque_denormed, speed_ml_metrics, torque_ml_metrics = \
-        predict(speed_model, torque_model, data, args.window)
+        predict(model, data, args.window)
 
 print(args.speed_model_file.split('/')[-1][:30], args.benchmark_file.split('/')[-1])
 
