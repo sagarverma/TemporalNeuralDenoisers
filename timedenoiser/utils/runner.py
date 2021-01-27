@@ -15,10 +15,8 @@ class Runner():
         self.criterion = criterion
         self.train_loader = train_loader
         self.val_loader = val_loader
-        self.test_loader = test_loader
         self.train_metrics = initialize_metrics()
         self.val_metrics = initialize_metrics()
-        self.test_metrics = initialize_metrics()
 
     def set_epoch_metrics(self):
         self.train_metrics = initialize_metrics()
@@ -66,21 +64,6 @@ class Runner():
         self.model.eval()
 
         for input_tensor, output_tensor in self.val_loader:
-            input_tensor, output_tensor = self.batch_to_gpu(input_tensor,
-                                                          output_tensor)
-
-            prediction_tensor, loss = self.eval_forward(input_tensor, output_tensor)
-            compute_metrics(self.val_metrics, loss, prediction_tensor,
-                                                    output_tensor)
-            # clear batch variables from memory
-            del input_tensor, output_tensor
-
-        return get_mean_metrics(self.val_metrics)
-
-    def test_model(self):
-        self.model.eval()
-        
-        for input_tensor, output_tensor in self.test_loader:
             input_tensor, output_tensor = self.batch_to_gpu(input_tensor,
                                                           output_tensor)
 
