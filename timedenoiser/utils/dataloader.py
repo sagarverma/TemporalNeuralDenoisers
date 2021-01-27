@@ -1,6 +1,9 @@
 import os
 import math
 import glob
+import pickle
+import json
+
 import torch
 import torch.utils.data as data
 from torch.autograd import Variable
@@ -13,15 +16,8 @@ import scipy.io as sio
 from scipy.signal import resample
 from scipy.interpolate import interp1d
 
-quantities_min_max = {'noisy_voltage_d': (-500, 500),
-                      'noisy_voltage_q': (-500, 500),
-                      'speed': (-80, 80),
-                      'noisy_current_d': (-30, 30),
-                      'noisy_current_q': (-30, 30),
-                      'torque': (-250, 250)}
 
-
-def normalize(data, quantity):
+def normalize(data, minn, maxx):
     """Normalize a quantity using global minima and maxima.
 
     Args:
@@ -39,19 +35,14 @@ def normalize(data, quantity):
         >>>
 
     """
-    if data.max() > quantities_min_max[quantity][1] or \
-        data.min() < quantities_min_max[quantity][0]:
-        print (quantity, data.max(), data.min())
-    a = 0
-    b = 1
-    minn, maxx = quantities_min_max[quantity]
-    if minn > data.min() or maxx < data.max():
-        print (quantity, data.min(), data.max())
-    t = a + (data - minn) * ((b - a) / (maxx - minn))
+    # a = 0
+    # b = 1
+    # t = a + (data - minn) * ((b - a) / (maxx - minn))
+    t = data / maxx
     return t.astype(np.float32)
 
 
-def denormalize(data, quantity):
+def denormalize(data, minn, maxx):
     """Denormalize a quantity using global minima and maxima.
 
     Args:
@@ -69,133 +60,82 @@ def denormalize(data, quantity):
         >>>
 
     """
-    a, b = quantities_min_max[quantity]
-    t = a + (data - (0)) * ((b-a) / (1-(0)))
+    # t = minn + (data - (0)) * ((maxx - minn) / (1 - (0)))
+    t = data * maxx
     return t.astype(np.float32)
 
 
-def load_data(root):
-    """Load synthetic dataset.
+def load_data(args):
+    dataset = {}
 
-    Args:
-        root (type): Dataset directory to load the dataset.
+    train_pkls = glob.glob(os.path.join(args.data_dir, 'train/*.pkl'))
+    val_pkls = glob.glob(os.path.join(args.data_dir, 'val/*.pkl'))
 
-    Returns:
-        tuple: dataset, index_quant_map.
+    fin = open(os.path.join(args.data_dir, 'metadata.json'), 'r')
+    metadata = json.load(fin)
+    fin.close()
 
-    Raises:        ExceptionName: Why the exception is raised.
+    train_samples = []
+    val_samples = []
 
-    Examples
-        Examples should be written in doctest format, and
-        should illustrate how to use the function/class.
-        >>>
+    for train_pkl in train_pkls:
+        fin = open(train_pkl, 'rb')
+        data = pickle.load(fin)
+        dataset[train_pkl] = data
 
-    """
-    exps = os.listdir(root)
+        for i in range(0, data['current_d'].shape[0], args.stride):
+            if i + args.window < data['current_d'].shape[0]:
+                train_samples.append([train_pkl, i,
+                                      i + args.window, i + args.window//2])
 
-    dataset = []
-    for exp in exps:
-        mat_data, index_quant_map = _load_exp_data(os.path.join(root, exp))
-        dataset.append(mat_data)
+    for val_pkl in val_pkls:
+        fin = open(val_pkl, 'rb')
+        data = pickle.load(fin)
+        dataset[val_pkl] = data
 
-    return dataset, index_quant_map
+        for i in range(0, data['current_d'].shape[0], args.stride):
+            if i + args.window < data['current_d'].shape[0]:
+                val_samples.append([val_pkl, i,
+                                      i + args.window, i + args.window//2])
 
+    return dataset, train_samples, val_samples, metadata
 
-def _load_exp_data(root):
-    data = sio.loadmat(root)
+def loader(full_load, sample, metadata, args, type='flat'):
+    inp_quants = args.inp_quants.split(',')
+    out_quants = args.out_quants.split(',')
 
-    voltage_d = normalize(data['noisy_voltage_d'], 'noisy_voltage_d')
-    voltage_q = normalize(data['noisy_voltage_q'], 'noisy_voltage_q')
-    current_d = normalize(data['noisy_current_d'], 'noisy_current_d')
-    current_q = normalize(data['noisy_current_q'], 'noisy_current_q')
-    speed = normalize(data['speed'], 'speed')
-    torque = normalize(data['torque'], 'torque')
-    time = data['time']
+    inp_data = []
+    for inp_quant in inp_quants:
+        window = full_load[sample[0]][inp_quant][sample[1]: sample[2]]
+        minn = metadata['min'][inp_quant]
+        maxx = metadata['max'][inp_quant]
+        inp_data.append(normalize(window, minn, maxx))
 
+    out_data = []
+    for out_quant in out_quants:
+        if type == 'seq':
+            window = full_load[sample[0]][out_quant][sample[1]: sample[2]]
+        if type == 'flat':
+            window = full_load[sample[0]][out_quant][sample[3]]
+        minn = metadata['min'][out_quant]
+        maxx = metadata['max'][out_quant]
+        out_data.append(normalize(window, minn, maxx))
 
-    dataset = (voltage_d, voltage_q, speed,
-               current_d, current_q, torque, time)
-    dataset = np.vstack(dataset)
-
-    index_quant_map = {'voltage_d': 0,
-                       'voltage_q': 1,
-                       'speed': 2,
-                       'current_d': 3,
-                       'current_q': 4,
-                       'torque': 5,
-                       'time': 6}
-
-    return dataset.astype(np.float32), index_quant_map
-
-
-def get_sample_metadata(dataset, stride, window):
-    """Get sample metadata from dataset based on sampling stride and window.
-
-    Args:
-        dataset (list): List of np.array extracted from different mat files.
-        stride (int): Sampling stride.
-        window (int): Sampling window length.
-
-    Returns:
-        list: List of samples where each item in list is a tuple with
-              mat no, index in mat data, index + window and index + window//2.
-
-    Raises:        ExceptionName: Why the exception is raised.
-
-    Examples
-        Examples should be written in doctest format, and
-        should illustrate how to use the function/class.
-        >>>
-
-    """
-    samples = []
-
-    for sample_no in range(len(dataset)):
-        for i in range(0, dataset[sample_no].shape[1], stride):
-            if i + window < dataset[sample_no].shape[1]:
-                samples.append([sample_no, i, i+window, i+window//2])
-
-    return samples
-
+    return np.asarray(inp_data), np.asarray(out_data)
 
 class FlatInFlatOut(data.Dataset):
-    def __init__(self, full_load, index_quant_map, samples,
-                 inp_quants, out_quants):
-        """Dataloader class to load samples from signals loaded.
-
-        Args:
-            full_load (list): List of numpy array of loaded mat files.
-            index_quant_map (dict): Dictionary which maps signal quantity to
-                                    to index in full_load arrays.
-            samples (list): Metadata used to sample subsequences from
-                            full_load.
-            inp_quants (list): Input quantities to the model.
-            out_quants (list): Output quantities to the model.
-
-        Returns:
-            type: Description of returned object.
-
-        Raises:            ExceptionName: Why the exception is raised.
-
-        Examples
-            Examples should be written in doctest format, and
-            should illustrate how to use the function/class.
-            >>>
-
-        """
+    def __init__(self, full_load, samples, metadata, args):
         random.shuffle(samples)
         self.samples = samples
         self.full_load = full_load
-        self.inp_quant_ids = [index_quant_map[x] for x in inp_quants]
-        self.out_quant_ids = [index_quant_map[x] for x in out_quants]
+        self.metadata = metadata
+        self.args = args
 
     def __getitem__(self, index):
-        mat_no, start, end, infer_index = self.samples[index]
+        sample = self.samples[index]
 
-        inp_seq = self.full_load[mat_no][self.inp_quant_ids, start: end]
-        out_seq = self.full_load[mat_no][self.out_quant_ids, infer_index]
+        inp_seq, out_seq = loader(self.full_load, sample, self.metadata, self.args, 'flat')
         inp_seq = inp_seq.flatten()
-        out_seq = out_seq.flatten()
 
         return inp_seq, out_seq
 
@@ -204,42 +144,17 @@ class FlatInFlatOut(data.Dataset):
 
 
 class SeqInFlatOut(data.Dataset):
-    def __init__(self, full_load, index_quant_map, samples,
-                 inp_quants, out_quants):
-        """Dataloader class to load samples from signals loaded.
-
-        Args:
-            full_load (list): List of numpy array of loaded mat files.
-            index_quant_map (dict): Dictionary which maps signal quantity to
-                                    to index in full_load arrays.
-            samples (list): Metadata used to sample subsequences from
-                            full_load.
-            inp_quants (list): Input quantities to the model.
-            out_quants (list): Output quantities to the model.
-
-        Returns:
-            type: Description of returned object.
-
-        Raises:            ExceptionName: Why the exception is raised.
-
-        Examples
-            Examples should be written in doctest format, and
-            should illustrate how to use the function/class.
-            >>>
-
-        """
+    def __init__(self, full_load, samples, metadata, args):
         random.shuffle(samples)
         self.samples = samples
         self.full_load = full_load
-        self.inp_quant_ids = [index_quant_map[x] for x in inp_quants]
-        self.out_quant_ids = [index_quant_map[x] for x in out_quants]
+        self.metadata = metadata
+        self.args = args
 
     def __getitem__(self, index):
-        mat_no, start, end, infer_index = self.samples[index]
+        sample = self.samples[index]
 
-        inp_seq = self.full_load[mat_no][self.inp_quant_ids, start: end]
-        out_seq = self.full_load[mat_no][self.out_quant_ids, infer_index]
-        out_seq = out_seq.flatten()
+        inp_seq, out_seq = loader(self.full_load, sample, self.metadata, self.args, 'flat')
 
         return inp_seq, out_seq
 
@@ -248,41 +163,17 @@ class SeqInFlatOut(data.Dataset):
 
 
 class SeqInSeqOut(data.Dataset):
-    def __init__(self, full_load, index_quant_map, samples,
-                 inp_quants, out_quants):
-        """Dataloader class to load samples from signals loaded.
-
-        Args:
-            full_load (list): List of numpy array of loaded mat files.
-            index_quant_map (dict): Dictionary which maps signal quantity to
-                                    to index in full_load arrays.
-            samples (list): Metadata used to sample subsequences from
-                            full_load.
-            inp_quants (list): Input quantities to the model.
-            out_quants (list): Output quantities to the model.
-
-        Returns:
-            type: Description of returned object.
-
-        Raises:            ExceptionName: Why the exception is raised.
-
-        Examples
-            Examples should be written in doctest format, and
-            should illustrate how to use the function/class.
-            >>>
-
-        """
+    def __init__(self, full_load, samples, metadata, args):
         random.shuffle(samples)
         self.samples = samples
         self.full_load = full_load
-        self.inp_quant_ids = [index_quant_map[x] for x in inp_quants]
-        self.out_quant_ids = [index_quant_map[x] for x in out_quants]
+        self.metadata = metadata
+        self.args = args
 
     def __getitem__(self, index):
-        mat_no, start, end, _ = self.samples[index]
+        sample = self.samples[index]
 
-        inp_seq = self.full_load[mat_no][self.inp_quant_ids, start: end]
-        out_seq = self.full_load[mat_no][self.out_quant_ids, start: end]
+        inp_seq, out_seq = loader(self.full_load, sample, self.metadata, self.args, 'seq')
 
         return inp_seq, out_seq
 
