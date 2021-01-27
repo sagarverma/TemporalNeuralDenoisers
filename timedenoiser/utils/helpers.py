@@ -6,16 +6,16 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-from motor_dynamics.utils.metrics import sc_mse
+from timedenoiser.utils.metrics import sc_mse
 
-from motor_dynamics.utils.dataloader import (denormalize, load_data, get_sample_metadata, FlatInFlatOut,
+from timedenoiser.utils.dataloader import (denormalize, load_data, get_sample_metadata, FlatInFlatOut,
                               SeqInFlatOut, SeqInSeqOut)
 
-from motor_dynamics.models.cnn import ShallowCNN, DeepCNN
-from motor_dynamics.models.ffnn import ShallowFNN, DeepFNN
-from motor_dynamics.models.rnn import ShallowRNN, DeepRNN
-from motor_dynamics.models.lstm import ShallowLSTM, DeepLSTM
-from motor_dynamics.models.encdec import (ShallowEncDec, DeepEncDec, EncDecSkip,
+from timedenoiser.models.cnn import ShallowCNN, DeepCNN
+from timedenoiser.models.ffnn import ShallowFNN, DeepFNN
+from timedenoiser.models.rnn import ShallowRNN, DeepRNN
+from timedenoiser.models.lstm import ShallowLSTM, DeepLSTM
+from timedenoiser.models.encdec import (ShallowEncDec, DeepEncDec, EncDecSkip,
                           EncDecRNNSkip, EncDecBiRNNSkip,
                           EncDecDiagBiRNNSkip)
 
