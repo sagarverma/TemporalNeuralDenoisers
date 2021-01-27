@@ -1,0 +1,6 @@
+README.md
+setup.py
+timedenoiser.egg-info/PKG-INFO
+timedenoiser.egg-info/SOURCES.txt
+timedenoiser.egg-info/dependency_links.txt
+timedenoiser.egg-info/top_level.txt
