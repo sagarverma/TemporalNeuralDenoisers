@@ -83,8 +83,8 @@ def load_data(args):
         data = pickle.load(fin)
         dataset[train_pkl] = data
 
-        for i in range(0, data['current_d'].shape[0], args.stride):
-            if i + args.window < data['current_d'].shape[0]:
+        for i in range(0, data['noisy_current_d'].shape[0], args.stride):
+            if i + args.window < data['noisy_current_d'].shape[0]:
                 train_samples.append([train_pkl, i,
                                       i + args.window, i + args.window//2])
 
@@ -93,8 +93,8 @@ def load_data(args):
         data = pickle.load(fin)
         dataset[val_pkl] = data
 
-        for i in range(0, data['current_d'].shape[0], args.stride):
-            if i + args.window < data['current_d'].shape[0]:
+        for i in range(0, data['noisy_current_d'].shape[0], args.stride):
+            if i + args.window < data['noisy_current_d'].shape[0]:
                 val_samples.append([val_pkl, i,
                                       i + args.window, i + args.window//2])
 
