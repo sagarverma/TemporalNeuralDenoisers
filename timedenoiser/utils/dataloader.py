@@ -69,8 +69,8 @@ def denormalize(data, minn, maxx):
 def load_data(args):
     dataset = {}
 
-    train_mats = glob.glob(os.path.join(args.data_dir, 'train/*.mat'))[:10]
-    val_mats = glob.glob(os.path.join(args.data_dir, 'val/*.mat'))[:10]
+    train_mats = glob.glob(os.path.join(args.data_dir, 'train_mix/*.mat'))
+    val_mats = glob.glob(os.path.join(args.data_dir, 'real/*.mat'))
 
     fin = open(os.path.join(args.data_dir, 'metadata.json'), 'r')
     metadata = json.load(fin)
@@ -82,7 +82,6 @@ def load_data(args):
     for train_mat in train_mats:
         data = loadmat(train_mat)
         dataset[train_mat] = data
-
         for i in range(0, data['noisy_current_d'][0].shape[0], args.stride):
             if i + args.window < data['noisy_current_d'][0].shape[0]:
                 train_samples.append([train_mat, i,

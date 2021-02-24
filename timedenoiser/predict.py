@@ -32,7 +32,7 @@ out = deepcopy(data)
 speed_denormed, torque_denormed, speed_ml_metrics, torque_ml_metrics = \
         predict(model, data, args.window)
 
-print(args.speed_model_file.split('/')[-1][:30], args.benchmark_file.split('/')[-1])
+print(args.model_file.split('/')[-1][:30], args.benchmark_file.split('/')[-1])
 
 
 save_dir = os.path.join(args.save_dir, args.benchmark_file.split('/')[-1].split('.')[0])
