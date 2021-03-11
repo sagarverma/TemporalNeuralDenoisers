@@ -11,7 +11,7 @@ Paper: Du, H. & Liu, Y.: Minmax-concave Total Variation Denoising.
 Algorithm for arg_min_X 0.5|Y - X|_2^2 + lamda*|X|_MCTV
 """
 
-import tv1d
+from timedenoiser.models import tv1d
 import numpy as np
 
 def denoising_1D_MCTV(Y, para):
