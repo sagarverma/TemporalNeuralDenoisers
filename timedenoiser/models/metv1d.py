@@ -11,7 +11,7 @@ Paper: Selesnick, I.: Total Variation Denoising via the Moreau Envelope.
 Algorithm for arg_min_X 0.5|Y - X|_2^2 + lamda*|X|_METV
 """
 
-import tv1d
+from timedenoiser.models import tv1d
 import numpy as np
 
 def denoising_1D_METV(Y, para):
