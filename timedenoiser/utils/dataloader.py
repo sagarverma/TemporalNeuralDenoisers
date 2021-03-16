@@ -1,8 +1,9 @@
 import os
 import math
 import glob
-import pickle
 import json
+
+from scipy.io import loadmat 
 
 import torch
 import torch.utils.data as data
@@ -68,8 +69,8 @@ def denormalize(data, minn, maxx):
 def load_data(args):
     dataset = {}
 
-    train_mats = glob.glob(os.path.join(args.data_dir, 'train/*.mat'))
-    val_mats = glob.glob(os.path.join(args.data_dir, 'val/*.mat'))
+    train_mats = glob.glob(os.path.join(args.data_dir, 'train_mix/*.mat'))
+    val_mats = glob.glob(os.path.join(args.data_dir, 'real/*.mat'))
 
     fin = open(os.path.join(args.data_dir, 'metadata.json'), 'r')
     metadata = json.load(fin)
@@ -81,9 +82,8 @@ def load_data(args):
     for train_mat in train_mats:
         data = loadmat(train_mat)
         dataset[train_mat] = data
-
-        for i in range(0, data['noisy_current_d'].shape[0], args.stride):
-            if i + args.window < data['noisy_current_d'].shape[0]:
+        for i in range(0, data['noisy_current_d'][0].shape[0], args.stride):
+            if i + args.window < data['noisy_current_d'][0].shape[0]:
                 train_samples.append([train_mat, i,
                                       i + args.window, i + args.window//2])
 
@@ -91,8 +91,8 @@ def load_data(args):
         data = loadmat(val_mat)
         dataset[val_mat] = data
 
-        for i in range(0, data['noisy_current_d'].shape[0], args.stride):
-            if i + args.window < data['noisy_current_d'].shape[0]:
+        for i in range(0, data['noisy_current_d'][0].shape[0], args.stride):
+            if i + args.window < data['noisy_current_d'][0].shape[0]:
                 val_samples.append([val_mat, i,
                                       i + args.window, i + args.window//2])
 
@@ -105,7 +105,7 @@ def loader(full_load, sample, metadata, args, type='flat'):
 
     inp_data = []
     for inp_quant in inp_quants:
-        window = full_load[sample[0]][inp_quant][sample[1]: sample[2]]
+        window = full_load[sample[0]][inp_quant][0][sample[1]: sample[2]]
         minn = metadata['min'][inp_quant]
         maxx = metadata['max'][inp_quant]
         inp_data.append(normalize(window, minn, maxx))
@@ -113,9 +113,9 @@ def loader(full_load, sample, metadata, args, type='flat'):
     out_data = []
     for out_quant in out_quants:
         if type == 'seq':
-            window = full_load[sample[0]][out_quant][sample[1]: sample[2]]
+            window = full_load[sample[0]][out_quant][0][sample[1]: sample[2]]
         if type == 'flat':
-            window = full_load[sample[0]][out_quant][sample[3]]
+            window = full_load[sample[0]][out_quant][0][sample[3]]
         minn = metadata['min'][out_quant]
         maxx = metadata['max'][out_quant]
         out_data.append(normalize(window, minn, maxx))

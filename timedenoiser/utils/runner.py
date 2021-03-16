@@ -63,7 +63,7 @@ class Runner():
     def eval_model(self):
         self.model.eval()
 
-        for input_tensor, output_tensor in self.train_loader:
+        for input_tensor, output_tensor in self.val_loader:
             input_tensor, output_tensor = self.batch_to_gpu(input_tensor,
                                                           output_tensor)
 

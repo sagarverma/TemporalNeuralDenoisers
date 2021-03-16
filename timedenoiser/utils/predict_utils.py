@@ -61,7 +61,7 @@ def predict(model, data, window):
 
     inp_data = []
     for inp_quant in inp_quants:
-        quantity = data[inp_quant]
+        quantity = data[inp_quant][0]
         minn = metadata['min'][inp_quant]
         maxx = metadata['max'][inp_quant]
         inp_data.append(normalize(quantity, minn, maxx))
@@ -70,7 +70,7 @@ def predict(model, data, window):
 
     out_data = []
     for out_quant in ['speed', 'torque']:
-        quantity = data[out_quant]
+        quantity = data[out_quant][0]
         minn = metadata['min'][out_quant]
         maxx = metadata['max'][out_quant]
         out_data.append(normalize(quantity, minn, maxx))
@@ -90,8 +90,8 @@ def predict(model, data, window):
     for i in range(0, len(samples), 1000):
         batch_inp = torch.tensor(np.asarray(samples[i:i+1000])).float().cuda(0)
         out = model(batch_inp)
-        speed_preds.append(out.data.cpu().numpy()[:, 0])
-        torque_preds.append(out.data.cpu().numpy()[:, 1])
+        speed_preds.append(out.data.cpu().numpy()[:, 0:1])
+        torque_preds.append(out.data.cpu().numpy()[:, 1:])
 
     speed_preds = np.concatenate(speed_preds, axis=0)
     torque_preds = np.concatenate(torque_preds, axis=0)
@@ -142,10 +142,7 @@ def load_data(opt):
 
 
 def load_model(opt):
-    speed_model = torch.load(opt.speed_model_file).cuda(0)
-    speed_model = speed_model.eval()
+    model = torch.load(opt.model_file).cuda(0)
+    model = model.eval()
 
-    torque_model = torch.load(opt.torque_model_file).cuda(0)
-    torque_model = torque_model.eval()
-
-    return speed_model, torque_model
+    return model
