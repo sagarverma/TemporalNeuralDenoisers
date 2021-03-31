@@ -3,14 +3,13 @@ import torch.optim as optim
 
 from timedenoiser.utils.parser import get_parser_with_args
 from timedenoiser.utils.helpers import (get_file_names, get_dataloaders,
-                                   get_model, get_loss_function, Log)
+                                        get_model, get_loss_function, Log)
 from timedenoiser.utils.runner import Runner
 
 parser = get_parser_with_args()
 args = parser.parse_args()
 
 weight_path, log_path = get_file_names(args)
-print (weight_path, log_path)
 logger = Log(log_path, 'w')
 
 train_loader, val_loader = get_dataloaders(args)
