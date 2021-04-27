@@ -12,8 +12,9 @@ Algorithm for arg_min_X 0.5|Y - X|_2^2 + lamda*|X|_TV (|X|_TV = |DX|_1)
 """
 import numpy as np
 
+
 def denoising_1D_TV(Y, lamda):
-    
+
     N = len(Y)
     X = np.zeros(N)
 
@@ -24,11 +25,11 @@ def denoising_1D_TV(Y, lamda):
     umax = -lamda
 
     while k < N:
-        
+
         if k == N - 1:
             X[k] = vmin + umin
             break
-        
+
         if Y[k + 1] < vmin - lamda - umin:
             for i in range(k0, kf + 1):
                 X[i] = vmin
@@ -37,7 +38,7 @@ def denoising_1D_TV(Y, lamda):
             vmax = Y[k] + 2 * lamda
             umin = lamda
             umax = -lamda
-            
+
         elif Y[k + 1] > vmax + lamda - umax:
             for i in range(k0, kz + 1):
                 X[i] = vmax
@@ -46,7 +47,7 @@ def denoising_1D_TV(Y, lamda):
             vmax = Y[k]
             umin = lamda
             umax = -lamda
-            
+
         else:
             k += 1
             umin = umin + Y[k] - vmin
@@ -59,7 +60,7 @@ def denoising_1D_TV(Y, lamda):
                 vmax = vmax + (umax + lamda) * 1.0 / (k - k0 + 1)
                 umax = -lamda
                 kz = k
-                
+
         if k == N - 1:
             if umin < 0:
                 for i in range(k0, kf + 1):
@@ -68,7 +69,7 @@ def denoising_1D_TV(Y, lamda):
                 vmin = Y[k]
                 umin = lamda
                 umax = Y[k] + lamda - vmax
-                
+
             elif umax > 0:
                 for i in range(k0, kz + 1):
                     X[i] = vmax
@@ -76,7 +77,7 @@ def denoising_1D_TV(Y, lamda):
                 vmax = Y[k]
                 umax = -lamda
                 umin = Y[k] - lamda - vmin
-                
+
             else:
                 for i in range(k0, N):
                     X[i] = vmin + umin * 1.0 / (k - k0 + 1)
