@@ -1,8 +1,8 @@
 from pykalman import KalmanFilter
 
 
-def ekf(noisy):
-    transition_covariance = np.diag([0.2, 0]) ** 2
+def ekf(noisy, std):
+    transition_covariance = np.diag([std, 0]) ** 2
     transition_matrix = np.asarray([[1, 0.004], [0, 1]])
     kf = KalmanFilter(transition_matrices=transition_matrix,
                       transition_covariance=transition_covariance)
