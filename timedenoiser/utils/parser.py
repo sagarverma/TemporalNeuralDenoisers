@@ -23,7 +23,7 @@ def get_parser_with_args():
                         required=True,
                         help="GPU ID on which to run")
 
-    parser.add_argument('--num_gpu',
+    parser.add_argument('--num_gpus',
                         type=int,
                         default=4,
                         required=True,
