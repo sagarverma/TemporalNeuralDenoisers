@@ -26,7 +26,8 @@ def init_hidden(x: torch.Tensor, hidden_size: int, num_dir: int = 1, xavier: boo
 ###########################################################################
 
 class Encoder(nn.Module):
-    def __init__(self, config, input_size: int):
+    def __init__(self, hidden_size_encoder: int,
+                       seq_len: int, input_size: int):
         """
         Initialize the model.
         Args:
@@ -35,9 +36,9 @@ class Encoder(nn.Module):
         """
         super(Encoder, self).__init__()
         self.input_size = input_size
-        self.hidden_size = config['hidden_size_encoder']
-        self.seq_len = config['seq_len']
-        self.lstm = nn.LSTM(input_size=input_size, hidden_size=config['hidden_size_encoder'])
+        self.hidden_size = hidden_size_encoder
+        self.seq_len = seq_len
+        self.lstm = nn.LSTM(input_size=input_size, hidden_size=hidden_size_encoder)
 
     def forward(self, input_data: torch.Tensor):
         """
@@ -56,7 +57,11 @@ class Encoder(nn.Module):
 
 
 class AttnEncoder(nn.Module):
-    def __init__(self, config, input_size: int):
+    def __init__(self, hidden_size_encoder: int,
+                       seq_len: int,
+                       denoising: bool,
+                       directions: int,
+                       input_size: int):
         """
         Initialize the network.
         Args:
@@ -65,10 +70,10 @@ class AttnEncoder(nn.Module):
         """
         super(AttnEncoder, self).__init__()
         self.input_size = input_size
-        self.hidden_size = config['hidden_size_encoder']
-        self.seq_len = config['seq_len']
-        self.add_noise = config['denoising']
-        self.directions = config['directions']
+        self.hidden_size = hidden_size_encoder
+        self.seq_len = seq_len
+        self.add_noise = denoising
+        self.directions = directions
         self.lstm = nn.LSTM(
             input_size=self.input_size,
             hidden_size=self.hidden_size,
@@ -133,17 +138,19 @@ class AttnEncoder(nn.Module):
 ###########################################################################
 
 class Decoder(nn.Module):
-    def __init__(self, config):
+    def __init__(self, hidden_size_decoder: int,
+                       seq_len: int,
+                       output_size: int):
         """
         Initialize the network.
         Args:
             config:
         """
         super(Decoder, self).__init__()
-        self.seq_len = config['seq_len']
-        self.hidden_size = config['hidden_size_decoder']
-        self.lstm = nn.LSTM(1, config['hidden_size_decoder'], bidirectional=False)
-        self.fc = nn.Linear(config['hidden_size_decoder'], config['output_size'])
+        self.seq_len = seq_len
+        self.hidden_size = hidden_size_decoder
+        self.lstm = nn.LSTM(1, hidden_size_decoder, bidirectional=False)
+        self.fc = nn.Linear(hidden_size_decoder, output_size)
 
     def forward(self, _, y_hist: torch.Tensor):
         """
@@ -162,17 +169,20 @@ class Decoder(nn.Module):
 
 
 class AttnDecoder(nn.Module):
-    def __init__(self, config):
+    def __init__(self, seq_len: int,
+                       hidden_size_encoder: int,
+                       hidden_size_decoder: int,
+                       output_size: int):
         """
         Initialize the network.
         Args:
             config:
         """
         super(AttnDecoder, self).__init__()
-        self.seq_len = config['seq_len']
-        self.encoder_hidden_size = config['hidden_size_encoder']
-        self.decoder_hidden_size = config['hidden_size_decoder']
-        self.out_feats = config['output_size']
+        self.seq_len = seq_len
+        self.encoder_hidden_size = hidden_size_encoder
+        self.decoder_hidden_size = hidden_size_decoder
+        self.out_feats = output_size
 
         self.attn = nn.Sequential(
             nn.Linear(2 * self.decoder_hidden_size + self.encoder_hidden_size, self.encoder_hidden_size),
@@ -218,7 +228,11 @@ class AttnDecoder(nn.Module):
 
 
 class AutoEncForecast(nn.Module):
-    def __init__(self, config, input_size):
+    def __init__(self, hidden_size_encoder,
+                       hidden_size_decoder,
+                       seq_len, denoising, directions,
+                       input_size, output_size,
+                       input_att, temporal_att):
         """
         Initialize the network.
         Args:
@@ -226,11 +240,24 @@ class AutoEncForecast(nn.Module):
             input_size: (int): size of the input
         """
         super(AutoEncForecast, self).__init__()
-        self.encoder = AttnEncoder(config, input_size).to(device) if config['input_att'] else \
-            Encoder(config, input_size).to(device)
-        self.decoder = AttnDecoder(config).to(device) if config['temporal_att'] else Decoder(config).to(device)
+        if input_att:
+            self.encoder = AttnEncoder(hidden_size_encoder, seq_len,
+                                       denoising, directions,
+                                       input_size).to(device)
+        else:
+            self.encoder = Encoder(hidden_size_encoder, seq_len,
+                                   input_size).to(device)
 
-    def forward(self, encoder_input: torch.Tensor, y_hist: torch.Tensor, return_attention: bool = False):
+        if temporal_att:
+            self.decoder = AttnDecoder(seq_len, hidden_size_encoder,
+                                       hidden_size_decoder,
+                                       output_size).to(device)
+        else:
+            self.decoder = Decoder(hidden_size_decoder, seq_len,
+                                   output_size).to(device)
+
+    def forward(self, encoder_input: torch.Tensor, y_hist: torch.Tensor,
+                return_attention: bool = False):
         """
         Forward computation. encoder_input_inputs.
         Args:
@@ -244,3 +271,14 @@ class AutoEncForecast(nn.Module):
         if return_attention:
             return outputs, attentions
         return outputs
+
+
+model = AutoEncForecast(hidden_size_encoder=128,
+                        hidden_size_decoder=128,
+                        seq_len=10, denoising=False,
+                        directions=1,
+                        input_size=4, output_size=4,
+                        input_att=True, temporal_att=True).cuda(0)
+inp = torch.randn(2, 10, 4)
+out = model(inp, inp)
+print(out.shape)
