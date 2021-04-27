@@ -79,7 +79,7 @@ def load_data(args):
     train_samples = []
     val_samples = []
 
-    for train_mat in train_mats:
+    for train_mat in train_mats[:10]:
         data = loadmat(train_mat)
         dataset[train_mat] = data
         for i in range(0, data['noisy_current_d'][0].shape[0], args.stride):
@@ -87,7 +87,7 @@ def load_data(args):
                 train_samples.append([train_mat, i,
                                       i + args.window, i + args.window//2])
 
-    for val_mat in val_mats:
+    for val_mat in val_mats[:5]:
         data = loadmat(val_mat)
         dataset[val_mat] = data
 
