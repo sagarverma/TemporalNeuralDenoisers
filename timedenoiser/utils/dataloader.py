@@ -3,7 +3,7 @@ import math
 import glob
 import json
 
-from scipy.io import loadmat 
+from scipy.io import loadmat
 
 import torch
 import torch.utils.data as data
@@ -69,8 +69,8 @@ def denormalize(data, minn, maxx):
 def load_data(args):
     dataset = {}
 
-    train_mats = glob.glob(os.path.join(args.data_dir, 'train_mix/*.mat'))
-    val_mats = glob.glob(os.path.join(args.data_dir, 'real/*.mat'))
+    train_mats = glob.glob(os.path.join(args.data_dir, 'train/*.mat'))
+    val_mats = glob.glob(os.path.join(args.data_dir, 'val/*.mat'))
 
     fin = open(os.path.join(args.data_dir, 'metadata.json'), 'r')
     metadata = json.load(fin)
