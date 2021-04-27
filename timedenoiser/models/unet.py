@@ -144,7 +144,7 @@ class UNET_1D(nn.Module):
         return out
 
 
-model = UNET_1D(1, 1, 128, 7, 3)
-inp = torch.randn(2, 1, 250)
-out = model(inp)
-print (out.shape)
+# model = UNET_1D(1, 1, 128, 7, 3)
+# inp = torch.randn(2, 1, 250)
+# out = model(inp)
+# print (out.shape)

@@ -18,8 +18,10 @@ from timedenoiser.models.lstm import ShallowLSTM, DeepLSTM
 from timedenoiser.models.encdec import (ShallowEncDec, DeepEncDec, EncDecSkip,
                           EncDecRNNSkip, EncDecBiRNNSkip,
                           EncDecDiagBiRNNSkip)
+from timedenoiser.models.unet import UNET_1D
 
 from motormetrics.ml import *
+
 
 def get_file_names(opt):
     """Get file fully qualified names to write weights and logs.
@@ -215,6 +217,8 @@ def get_model(opt):
         model = EncDecBiRNNSkip(inp_channels, out_channels, act)
     elif opt.model == 'encdec_diag_birnn_skip':
         model = EncDecDiagBiRNNSkip(inp_channels, out_channels, act)
+    elif opt.model == 'unet':
+        model = UNET_1D(inp_channels, out_channels, 128, 7, 3)
     else:
         print("Incorrect model passed in argument.")
         exit()
