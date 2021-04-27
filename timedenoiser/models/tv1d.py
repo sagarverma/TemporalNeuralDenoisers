@@ -84,3 +84,13 @@ def denoising_1D_TV(Y, lamda):
                 break
 
     return X
+
+
+def tv(noisy, std):
+    lamda = np.sqrt(std * noisy.shape[0]) / 5
+    # K = 100
+    # err = 0.001
+    # alpha = 0.3 / lamda
+    # para = pa.Parameter(lamda, K, err, alpha)
+
+    return denoising_1D_TV(noisy, lamda / 2)
