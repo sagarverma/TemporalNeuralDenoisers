@@ -221,6 +221,11 @@ def get_model(opt):
 
     print ('Parameters :', sum(p.numel() for p in model.parameters()))
 
+    if opt.gpu > -1:
+        model = model.to(opt.gpu)
+        if opt.num_gpus > 1:
+            model = nn.DataParallel(model, device_ids=list(range(opt.num_gpus)))
+
     return model.cuda(opt.gpu)
 
 def get_loss_function(opt):
@@ -251,7 +256,7 @@ def get_dataloaders(args):
 
     print ('Train Samples ', len(train_samples))
     print ('Val Samples ', len(val_samples))
-    
+
     train_preloader = preloader_class(dataset, train_samples, metadata, args)
     train_loader = DataLoader(train_preloader, batch_size=args.batch_size,
                             shuffle=True, num_workers=args.num_workers)
