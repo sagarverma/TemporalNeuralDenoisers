@@ -23,6 +23,12 @@ def get_parser_with_args():
                         required=True,
                         help="GPU ID on which to run")
 
+    parser.add_argument('--num_gpu',
+                        type=int,
+                        default=4,
+                        required=True,
+                        help="Number of GPUs on which to run")
+
     parser.add_argument('--data_dir',
                         type=str,
                         default='../../datasets/',
