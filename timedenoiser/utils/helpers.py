@@ -57,7 +57,7 @@ def get_file_names(opt):
         fname = opt.model + suffix
         fname += '_hiddenSize_' + str(opt.hidden_size)
 
-    if 'cnn' in opt.model or 'encdec' in opt.model:
+    if 'cnn' in opt.model or 'encdec' in opt.model or 'unet' in opt.model:
         fname = opt.model + suffix
 
     if not os.path.exists(os.path.join(opt.weights_dir, opt.data_dir.split('/')[-1], opt.model)):
