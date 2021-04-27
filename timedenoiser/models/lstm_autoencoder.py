@@ -280,5 +280,6 @@ model = AutoEncForecast(hidden_size_encoder=128,
                         input_size=4, output_size=4,
                         input_att=True, temporal_att=True).cuda(0)
 inp = torch.randn(2, 10, 4)
-out = model(inp, inp)
+target = torch.randn(2, 10, 4)
+out = model(inp, target)
 print(out.shape)
