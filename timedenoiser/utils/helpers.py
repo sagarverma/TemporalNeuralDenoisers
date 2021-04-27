@@ -248,9 +248,9 @@ def get_model_from_weight(opt):
 def _get_prelaoder_class(opt):
     if 'fnn' in opt.model:
         return FlatInFlatOut
-    if 'cnn' in opt.model or 'unet' in opt.model:
+    if 'cnn' in opt.model:
         return SeqInFlatOut
-    if 'rnn' in opt.model or 'lstm' in opt.model or 'encdec' in opt.model:
+    if 'rnn' in opt.model or 'lstm' in opt.model or 'encdec' in opt.model  or 'unet' in opt.model:
         return SeqInSeqOut
 
 
