@@ -17,7 +17,7 @@ from timedenoiser.models.rnn import ShallowRNN, DeepRNN
 from timedenoiser.models.lstm import ShallowLSTM, DeepLSTM
 from timedenoiser.models.encdec import (ShallowEncDec, DeepEncDec, EncDecSkip,
                           EncDecRNNSkip, EncDecBiRNNSkip,
-                          EncDecDiagBiRNNSkip)
+                          EncDecDiagBiRNNSkip, LightEncDec)
 from timedenoiser.models.unet import UNET_1D
 
 from motormetrics.ml import *
@@ -205,6 +205,8 @@ def get_model(opt):
         model = ShallowLSTM(inp_channels, out_channels, opt.hidden_size, act)
     elif opt.model == 'deep_lstm':
         model = DeepLSTM(inp_channels, out_channels, opt.hidden_size, act)
+    elif opt.model == 'light_encdec':
+        model = LightEncDec(inp_channels, out_channels, act)
     elif opt.model == 'shallow_encdec':
         model = ShallowEncDec(inp_channels, out_channels, act)
     elif opt.model == 'deep_encdec':
