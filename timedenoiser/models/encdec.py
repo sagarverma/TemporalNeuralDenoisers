@@ -30,7 +30,7 @@ class LightEncDec(nn.Module):
             >>>
 
         """
-        super(ShallowEncDec, self).__init__()
+        super(LightEncDec, self).__init__()
         self.cnn1 = nn.Conv1d(input_dim, 8, kernel_size=10, stride=1)
         self.bn1 = nn.BatchNorm1d(8)
         self.cnn2 = nn.Conv1d(8, 16, kernel_size=7, stride=1)
