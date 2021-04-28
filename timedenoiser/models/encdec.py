@@ -8,6 +8,63 @@ from torch.autograd import Variable
 from timedenoiser.models.indrnn import IndRNN
 
 
+class LightEncDec(nn.Module):
+    def __init__(self, input_dim, output_dim, act='relu'):
+        """Convolutional encoder-decoder network with four layer of
+           convolutions in the encoder and four layers of transposed
+           convolutions in the decoder.
+
+        Args:
+            input_dim (int): Number of input channels.
+            output_dim (int): Number of output channels.
+            act (str): Activation function to be used.
+
+        Returns:
+            nn.Module: ShallowEncDec model.
+
+        Raises:            ExceptionName: Why the exception is raised.
+
+        Examples
+            Examples should be written in doctest format, and
+            should illustrate how to use the function/class.
+            >>>
+
+        """
+        super(ShallowEncDec, self).__init__()
+        self.cnn1 = nn.Conv1d(input_dim, 8, kernel_size=10, stride=1)
+        self.bn1 = nn.BatchNorm1d(8)
+        self.cnn2 = nn.Conv1d(8, 16, kernel_size=7, stride=1)
+        self.bn2 = nn.BatchNorm1d(16)
+        self.cnn3 = nn.Conv1d(16, 32, kernel_size=5, stride=1)
+        self.bn3 = nn.BatchNorm1d(32)
+        self.cnn4 = nn.Conv1d(32, 64, kernel_size=3, stride=1)
+        self.bn4 = nn.BatchNorm1d(64)
+        
+        self.dcnn4 = nn.ConvTranspose1d(64, 32, kernel_size=3, stride=1)
+        self.bn5 = nn.BatchNorm1d(32)
+        self.dcnn3 = nn.ConvTranspose1d(32, 16, kernel_size=5, stride=1)
+        self.bn6 = nn.BatchNorm1d(16)
+        self.dcnn2 = nn.ConvTranspose1d(16, 8, kernel_size=7, stride=1)
+        self.bn7 = nn.BatchNorm1d(8)
+        self.dcnn1 = nn.ConvTranspose1d(8, output_dim, kernel_size=10, stride=1)
+        
+        if act == 'relu':
+            self.act = nn.ReLU()
+        if act == 'tanh':
+            self.act = nn.Tanh()
+
+    def forward(self, x):
+        x = self.act(self.bn1(self.cnn1(x)))
+        x = self.act(self.bn2(self.cnn2(x)))
+        x = self.act(self.bn3(self.cnn3(x)))
+        x = self.act(self.bn4(self.cnn4(x)))
+        x = self.act(self.bn5(self.dcnn4(x)))
+        x = self.act(self.bn6(self.dcnn3(x)))
+        x = self.act(self.bn7(self.dcnn2(x)))
+        x = self.dcnn1(x)
+        return x
+
+
 class ShallowEncDec(nn.Module):
     def __init__(self, input_dim, output_dim, act='relu'):
         """Convolutional encoder-decoder network with four layer of
